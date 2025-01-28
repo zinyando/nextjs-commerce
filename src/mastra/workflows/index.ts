@@ -1,9 +1,8 @@
 import { Step, Workflow } from '@mastra/core';
 import { z } from 'zod';
-
 import { chunkProducts } from '../../../lib/mastra/chunking';
 import { generateEmbedding } from '../../../lib/mastra/embeddings';
-// import { storeProductEmbedding } from '../../../lib/mastra/pgvector';
+import { storeProductEmbedding } from '../../../lib/mastra/supabase';
 import { ShopifyClient } from '../../../lib/mastra/shopify';
 
 const shopifyProductSchema = z.object({
@@ -63,7 +62,7 @@ const generateEmbeddingsStep = new Step({
       id: z.string(),
       title: z.string(),
       description: z.string(),
-      embedding: z.string(),
+      embedding: z.array(z.number()),
     })
   ),
   execute: async ({ context: { machineContext } }) => {
@@ -92,7 +91,7 @@ const storeEmbeddingsStep = new Step({
       id: z.string(),
       title: z.string(),
       description: z.string(),
-      embedding: z.string(),
+      embedding: z.array(z.number()),
     })
   ),
   output: z.object({ success: z.boolean() }),
@@ -102,15 +101,21 @@ const storeEmbeddingsStep = new Step({
       throw new Error('Products not found in step results or invalid format');
     }
 
-    // Separate embeddings and metadata
-    const embeddings = productsWithEmbeddings?.map((p) => p.embedding);
-    const products = productsWithEmbeddings?.map(({ id, title, description }) => ({
-      id,
-      title,
-      description
+    // Store each product with its embedding
+    await Promise.all(productsWithEmbeddings.map(async (product) => {
+      await storeProductEmbedding(
+        {
+          id: product.id,
+          title: product.title,
+          description: product.description,
+          handle: product.handle,
+          createdAt: product.createdAt,
+          updatedAt: new Date().toISOString(),
+        },
+        product.embedding
+      );
     }));
 
-    // await storeProductEmbedding(embeddings, products);
     return { success: true };
   }
 });
