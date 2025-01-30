@@ -1,3 +1,4 @@
+import { embed } from "@mastra/rag";
 import { PgVector } from '@mastra/vector-pg';
 
 const connectionString = process.env.POSTGRES_CONNECTION_STRING;
@@ -37,4 +38,19 @@ export async function storeProductEmbedding(embeddings: number[][], products: Pr
   );
 
   return result;
+}
+
+export async function searchProducts(query: string) {
+  const { embedding } = await embed(
+    query,
+    {
+      provider: "OPEN_AI",
+      model: "text-embedding-3-small",
+      maxRetries: 3,
+    }
+  );
+
+  const results = await pgVector.query("products", embedding, 10);
+  
+  return results;
 }
