@@ -52,5 +52,5 @@ export async function searchProducts(query: string) {
 
   const results = await pgVector.query("products", embedding, 10);
   
-  return results;
+  return results.map(result => result.metadata);
 }
