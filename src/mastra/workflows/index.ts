@@ -1,8 +1,7 @@
 import { Step, Workflow } from '@mastra/core';
 import { z } from 'zod';
-import { chunkProducts } from '../../../lib/mastra/chunking';
 import { generateEmbedding } from '../../../lib/mastra/embeddings';
-import { storeProductEmbedding } from '../../../lib/mastra/supabase';
+import { storeProductEmbedding } from '../../../lib/mastra/pgvector';
 import { ShopifyClient } from '../../../lib/mastra/shopify';
 
 const shopifyProductSchema = z.object({
@@ -19,6 +18,7 @@ const shopifyProductSchema = z.object({
       price: z.string(),
     })
   ).optional(),
+  tags: z.array(z.string()).optional(),
 });
 
 export const shopifyVectorWorkflow = new Workflow({
@@ -39,44 +39,42 @@ const fetchProductsStep = new Step({
   }
 });
 
-const chunkProductsStep = new Step({
-  id: 'chunkProductsStep',
-  input: z.array(shopifyProductSchema),
-  output: z.object({ chunks: z.array(z.string()) }),
-  execute: async ({ context: { machineContext } }) => {
-    const products = machineContext?.stepResults?.fetchProductsStep?.payload;
-    if (!products || !Array.isArray(products)) {
-      throw new Error('Products not found in input or invalid format');
-    }
-
-    const chunks = await chunkProducts(products);
-    return { chunks };
-  }
-});
-
 const generateEmbeddingsStep = new Step({
   id: 'generateEmbeddingsStep',
-  input: z.object({ chunks: z.array(z.string()) }),
+  input: z.array(shopifyProductSchema),
   output: z.array(
     z.object({
       id: z.string(),
+      handle: z.string(),
       title: z.string(),
       description: z.string(),
+      updated_at: z.string(),
+      tags: z.array(z.string()),
       embedding: z.array(z.number()),
     })
   ),
   execute: async ({ context: { machineContext } }) => {
-    const chunks = machineContext?.stepResults?.chunkProductsStep?.payload?.chunks;
-    if (!chunks || !Array.isArray(chunks)) {
-      throw new Error('Chunks not found in step results or invalid format');
+    const products = machineContext?.stepResults?.fetchProductsStep?.payload;
+    if (!products || !Array.isArray(products)) {
+      throw new Error('Products not found in step results or invalid format');
     }
 
     const results = [];
-    for (const chunk of chunks) {
-      const combinedText = `${chunk.title} ${chunk.description}`;
-      const embedding = await generateEmbedding(combinedText);
+    for (const product of products) {
+      const productText = [
+        product.title,
+        product.description,
+        ...(product.tags || [])
+      ].filter(Boolean).join(' ');
+      
+      const embedding = await generateEmbedding(productText);
       results.push({
-        ...chunk,
+        id: product.id,
+        handle: product.handle,
+        title: product.title,
+        description: product.description,
+        updated_at: product.updatedAt,
+        tags: product.tags || [],
         embedding
       });
     }
@@ -89,8 +87,11 @@ const storeEmbeddingsStep = new Step({
   input: z.array(
     z.object({
       id: z.string(),
+      handle: z.string(),
       title: z.string(),
       description: z.string(),
+      updated_at: z.string(),
+      tags: z.array(z.string()),
       embedding: z.array(z.number()),
     })
   ),
@@ -101,33 +102,16 @@ const storeEmbeddingsStep = new Step({
       throw new Error('Products not found in step results or invalid format');
     }
 
-    // Store each product with its embedding
-    await Promise.all(productsWithEmbeddings.map(async (product) => {
-      await storeProductEmbedding(
-        {
-          id: product.id,
-          title: product.title,
-          description: product.description,
-          handle: product.handle,
-          createdAt: product.createdAt,
-          updatedAt: new Date().toISOString(),
-        },
-        product.embedding
-      );
-    }));
-
+    const embeddings = productsWithEmbeddings.map(p => p.embedding);
+    const products = productsWithEmbeddings.map(({ embedding, ...product }) => product);
+    
+    await storeProductEmbedding(embeddings, products);
     return { success: true };
   }
 });
 
 shopifyVectorWorkflow
   .step(fetchProductsStep)
-  .then(chunkProductsStep)
   .then(generateEmbeddingsStep)
   .then(storeEmbeddingsStep)
   .commit();
-
-  const { runId, start } = shopifyVectorWorkflow.createRun();
-
-  const result = await start();
-  console.log("Workflow result:", result.results);

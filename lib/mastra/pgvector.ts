@@ -7,26 +7,34 @@ if (!connectionString) {
 
 const pgVector = new PgVector(connectionString);
 
-await pgVector.createIndex("embeddings", 1536);
+await pgVector.createIndex("products", 1536);
 
 interface ProductMetadata {
   id: string;
+  handle: string;
   title: string;
   description?: string;
+  updated_at: string;
+  tags?: string[];
 }
 
-export async function storeProductEmbedding(embeddings: number[][], products: ProductMetadata[]) {
+export async function storeProductEmbedding(embeddings: number[][], products: ProductMetadata[]) {  
   if (embeddings.length !== products.length) {
     throw new Error('Number of embeddings must match number of products');
   }
 
-  return pgVector.upsert(
-    "embeddings",
+  const result = await pgVector.upsert(
+    "products",
     embeddings,
     products.map(product => ({
       id: product.id,
+      handle: product.handle,
       title: product.title,
-      description: product.description
+      description: product.description,
+      updated_at: product.updated_at,
+      tags: product.tags || []
     }))
   );
+
+  return result;
 }
