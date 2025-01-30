@@ -81,8 +81,8 @@ const fetchProductsStep = new Step({
   }),
   output: z.array(shopifyProductSchema),
   execute: async ({ context: { machineContext } }) => {
-    if (machineContext?.triggerData.inputValue) {
-      return [machineContext.triggerData.inputValue];
+    if (machineContext?.triggerData && Object.keys(machineContext.triggerData).length > 0) {
+      return machineContext.triggerData;
     }
 
     const shopify = new ShopifyClient(
