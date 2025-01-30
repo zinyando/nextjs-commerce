@@ -6,19 +6,65 @@ import { ShopifyClient } from '../../../lib/mastra/shopify';
 
 const shopifyProductSchema = z.object({
   id: z.string(),
+  handle: z.string(),
+  availableForSale: z.boolean(),
   title: z.string(),
   description: z.string(),
-  handle: z.string(),
-  createdAt: z.string(),
+  descriptionHtml: z.string(),
+  options: z.array(
+    z.object({
+      name: z.string(),
+      values: z.array(z.string())
+    })
+  ).optional(),
+  priceRange: z.object({
+    maxVariantPrice: z.object({
+      amount: z.string(),
+      currencyCode: z.string()
+    }),
+    minVariantPrice: z.object({
+      amount: z.string(),
+      currencyCode: z.string()
+    })
+  }),
+  featuredImage: z.object({
+    url: z.string(),
+    altText: z.string().nullable(),
+    width: z.number(),
+    height: z.number()
+  }).optional(),
+  seo: z.object({
+    title: z.string(),
+    description: z.string()
+  }).optional(),
+  tags: z.array(z.string()).optional(),
   updatedAt: z.string(),
+  createdAt: z.string(),
+  images: z.array(
+    z.object({
+      url: z.string(),
+      altText: z.string().nullable(),
+      width: z.number(),
+      height: z.number()
+    })
+  ).optional(),
   variants: z.array(
     z.object({
       id: z.string(),
       title: z.string(),
-      price: z.string(),
+      availableForSale: z.boolean(),
+      price: z.object({
+        amount: z.string(),
+        currencyCode: z.string()
+      }),
+      selectedOptions: z.array(
+        z.object({
+          name: z.string(),
+          value: z.string()
+        })
+      )
     })
-  ).optional(),
-  tags: z.array(z.string()).optional(),
+  ).optional()
 });
 
 export const shopifyVectorWorkflow = new Workflow({
@@ -29,13 +75,17 @@ const fetchProductsStep = new Step({
   id: 'fetchProductsStep',
   output: z.array(shopifyProductSchema),
   execute: async ({ context: { machineContext } }) => {
-    console.log("Fetching products...");
     const shopify = new ShopifyClient(
       process.env.SHOPIFY_STORE_DOMAIN!,
       process.env.SHOPIFY_STOREFRONT_ACCESS_TOKEN!
     );
 
-    return await shopify.fetchProducts();
+    try {
+      return await shopify.fetchProducts();
+    } catch (error) {
+      console.error("Error in fetchProductsStep:", error);
+      throw error;
+    }
   }
 });
 
@@ -46,11 +96,65 @@ const generateEmbeddingsStep = new Step({
     z.object({
       id: z.string(),
       handle: z.string(),
+      availableForSale: z.boolean(),
       title: z.string(),
       description: z.string(),
-      updated_at: z.string(),
-      tags: z.array(z.string()),
-      embedding: z.array(z.number()),
+      descriptionHtml: z.string(),
+      options: z.array(
+        z.object({
+          name: z.string(),
+          values: z.array(z.string())
+        })
+      ).optional(),
+      priceRange: z.object({
+        maxVariantPrice: z.object({
+          amount: z.string(),
+          currencyCode: z.string()
+        }),
+        minVariantPrice: z.object({
+          amount: z.string(),
+          currencyCode: z.string()
+        })
+      }),
+      featuredImage: z.object({
+        url: z.string(),
+        altText: z.string().nullable(),
+        width: z.number(),
+        height: z.number()
+      }).optional(),
+      seo: z.object({
+        title: z.string(),
+        description: z.string()
+      }).optional(),
+      tags: z.array(z.string()).optional(),
+      updatedAt: z.string(),
+      createdAt: z.string(),
+      images: z.array(
+        z.object({
+          url: z.string(),
+          altText: z.string().nullable(),
+          width: z.number(),
+          height: z.number()
+        })
+      ).optional(),
+      variants: z.array(
+        z.object({
+          id: z.string(),
+          title: z.string(),
+          availableForSale: z.boolean(),
+          price: z.object({
+            amount: z.string(),
+            currencyCode: z.string()
+          }),
+          selectedOptions: z.array(
+            z.object({
+              name: z.string(),
+              value: z.string()
+            })
+          )
+        })
+      ).optional(),
+      embedding: z.array(z.number())
     })
   ),
   execute: async ({ context: { machineContext } }) => {
@@ -69,12 +173,7 @@ const generateEmbeddingsStep = new Step({
       
       const embedding = await generateEmbedding(productText);
       results.push({
-        id: product.id,
-        handle: product.handle,
-        title: product.title,
-        description: product.description,
-        updated_at: product.updatedAt,
-        tags: product.tags || [],
+        ...product,
         embedding
       });
     }
@@ -88,11 +187,65 @@ const storeEmbeddingsStep = new Step({
     z.object({
       id: z.string(),
       handle: z.string(),
+      availableForSale: z.boolean(),
       title: z.string(),
       description: z.string(),
-      updated_at: z.string(),
-      tags: z.array(z.string()),
-      embedding: z.array(z.number()),
+      descriptionHtml: z.string(),
+      options: z.array(
+        z.object({
+          name: z.string(),
+          values: z.array(z.string())
+        })
+      ).optional(),
+      priceRange: z.object({
+        maxVariantPrice: z.object({
+          amount: z.string(),
+          currencyCode: z.string()
+        }),
+        minVariantPrice: z.object({
+          amount: z.string(),
+          currencyCode: z.string()
+        })
+      }),
+      featuredImage: z.object({
+        url: z.string(),
+        altText: z.string().nullable(),
+        width: z.number(),
+        height: z.number()
+      }).optional(),
+      seo: z.object({
+        title: z.string(),
+        description: z.string()
+      }).optional(),
+      tags: z.array(z.string()).optional(),
+      updatedAt: z.string(),
+      createdAt: z.string(),
+      images: z.array(
+        z.object({
+          url: z.string(),
+          altText: z.string().nullable(),
+          width: z.number(),
+          height: z.number()
+        })
+      ).optional(),
+      variants: z.array(
+        z.object({
+          id: z.string(),
+          title: z.string(),
+          availableForSale: z.boolean(),
+          price: z.object({
+            amount: z.string(),
+            currencyCode: z.string()
+          }),
+          selectedOptions: z.array(
+            z.object({
+              name: z.string(),
+              value: z.string()
+            })
+          )
+        })
+      ).optional(),
+      embedding: z.array(z.number())
     })
   ),
   output: z.object({ success: z.boolean() }),
@@ -115,3 +268,8 @@ shopifyVectorWorkflow
   .then(generateEmbeddingsStep)
   .then(storeEmbeddingsStep)
   .commit();
+
+  const { runId, start } = shopifyVectorWorkflow.createRun();
+
+  const result = await start();
+  console.log("Workflow result:", result.results);

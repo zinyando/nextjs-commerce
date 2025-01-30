@@ -15,8 +15,17 @@ interface ProductMetadata {
   handle: string;
   title: string;
   description?: string;
-  updated_at: string;
+  updatedAt: string;
   tags?: string[];
+  availableForSale?: boolean;
+  descriptionHtml?: string;
+  priceRange?: any;
+  featuredImage?: any;
+  seo?: any;
+  images?: any[];
+  variants?: any[];
+  createdAt: string;
+  options?: any[];
 }
 
 export async function storeProductEmbedding(embeddings: number[][], products: ProductMetadata[]) {  
@@ -32,8 +41,17 @@ export async function storeProductEmbedding(embeddings: number[][], products: Pr
       handle: product.handle,
       title: product.title,
       description: product.description,
-      updated_at: product.updated_at,
-      tags: product.tags || []
+      updatedAt: product.updatedAt,
+      tags: product.tags || [],
+      availableForSale: product.availableForSale,
+      descriptionHtml: product.descriptionHtml,
+      priceRange: product.priceRange,
+      featuredImage: product.featuredImage,
+      seo: product.seo,
+      images: product.images,
+      variants: product.variants,
+      createdAt: product.createdAt,
+      options: product.options
     }))
   );
 
