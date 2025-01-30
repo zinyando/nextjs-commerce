@@ -67,14 +67,24 @@ const shopifyProductSchema = z.object({
   ).optional()
 });
 
-export const shopifyVectorWorkflow = new Workflow({
-  name: 'shopify-vector-workflow',
+export const shopifyRagWorkflow = new Workflow({
+  name: 'shopify-rag-workflow',
+  triggerSchema: z.object({
+    inputValue: shopifyProductSchema,
+  }),
 });
 
 const fetchProductsStep = new Step({
   id: 'fetchProductsStep',
+  input: z.object({
+    inputValue: shopifyProductSchema.optional()
+  }),
   output: z.array(shopifyProductSchema),
   execute: async ({ context: { machineContext } }) => {
+    if (machineContext?.triggerData.inputValue) {
+      return [machineContext.triggerData.inputValue];
+    }
+
     const shopify = new ShopifyClient(
       process.env.SHOPIFY_STORE_DOMAIN!,
       process.env.SHOPIFY_STOREFRONT_ACCESS_TOKEN!
@@ -263,13 +273,8 @@ const storeEmbeddingsStep = new Step({
   }
 });
 
-shopifyVectorWorkflow
+shopifyRagWorkflow
   .step(fetchProductsStep)
   .then(generateEmbeddingsStep)
   .then(storeEmbeddingsStep)
   .commit();
-
-  const { runId, start } = shopifyVectorWorkflow.createRun();
-
-  const result = await start();
-  console.log("Workflow result:", result.results);
