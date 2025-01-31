@@ -8,5 +8,6 @@ export default {
         pathname: '/s/files/**'
       }
     ]
-  }
+  },
+  serverExternalPackages: ['@mastra/rag'],
 };
