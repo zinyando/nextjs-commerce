@@ -15,14 +15,14 @@ importers:
         specifier: ^2.2.0
         version: 2.2.0(react@19.0.0)
       '@mastra/core':
-        specifier: ^0.1.27-alpha.81
-        version: 0.1.27-alpha.81(encoding@0.1.13)(react@19.0.0)
+        specifier: ^0.1.27-alpha.82
+        version: 0.1.27-alpha.82(encoding@0.1.13)(react@19.0.0)
       '@mastra/rag':
-        specifier: 0.0.2-alpha.72
-        version: 0.0.2-alpha.72(@aws-crypto/sha256-js@5.2.0)(@aws-sdk/credential-providers@3.734.0)(@huggingface/transformers@3.3.2)(canvas@2.11.2(encoding@0.1.13))(encoding@0.1.13)(gpt-tokenizer@2.8.1)(pathe@1.1.2)(pg@8.13.1)(react@19.0.0)(tree-sitter@0.22.4)(typescript@5.7.2)(web-tree-sitter@0.24.7)(ws@8.18.0)
+        specifier: 0.0.2-alpha.73
+        version: 0.0.2-alpha.73(@aws-crypto/sha256-js@5.2.0)(@aws-sdk/credential-providers@3.734.0)(@huggingface/transformers@3.3.2)(canvas@2.11.2(encoding@0.1.13))(encoding@0.1.13)(gpt-tokenizer@2.8.1)(pathe@1.1.2)(pg@8.13.1)(react@19.0.0)(tree-sitter@0.22.4)(typescript@5.7.2)(web-tree-sitter@0.24.7)(ws@8.18.0)
       '@mastra/vector-pg':
-        specifier: 0.0.1-alpha.15
-        version: 0.0.1-alpha.15(encoding@0.1.13)(react@19.0.0)
+        specifier: 0.0.1-alpha.16
+        version: 0.0.1-alpha.16(encoding@0.1.13)(react@19.0.0)
       clsx:
         specifier: ^2.1.1
         version: 2.1.1
@@ -70,8 +70,8 @@ importers:
         specifier: ^10.4.20
         version: 10.4.20(postcss@8.4.49)
       mastra:
-        specifier: ^0.1.57-alpha.130
-        version: 0.1.57-alpha.130(@swc/helpers@0.5.15)(encoding@0.1.13)(react@19.0.0)
+        specifier: ^0.1.57-alpha.132
+        version: 0.1.57-alpha.132(@swc/helpers@0.5.15)(encoding@0.1.13)(react@19.0.0)
       postcss:
         specifier: ^8.4.49
         version: 8.4.49
@@ -1136,22 +1136,18 @@ packages:
     resolution: {integrity: sha512-Yhlar6v9WQgUp/He7BdgzOz8lqMQ8sU+jkCq7Wx8Myc5YFJLbEe7lgui/V7G1qB1DJykHSGwreceSaD60Y0PUQ==}
     hasBin: true
 
-  '@mastra/core@0.1.27-alpha.80':
-    resolution: {integrity: sha512-0JU6NmOGciQLvTDXQahSSZ6b37Z/e0glcLZ3qVpKGK25kUAbPGi0zjukhdzg61Qy9XqdtegBe17gOIeh0IiCPA==}
+  '@mastra/core@0.1.27-alpha.82':
+    resolution: {integrity: sha512-U8c5yfgazYv2pwYLXR8Iy9zOzhDA4j53vsWxYdb7J9exVWusoKJj6B/R43f815bhD4RUytk62reK5pbxR4hTfw==}
     engines: {node: '>=20'}
 
-  '@mastra/core@0.1.27-alpha.81':
-    resolution: {integrity: sha512-0Ig+oWyDzYpe88KktEK+CJuXut6RjvrHlX3OrXy/04DMqiEto2i41NzMitchh/q8lH+eGa3jr0xnLsdRH1iz7g==}
-    engines: {node: '>=20'}
+  '@mastra/deployer@0.0.1-alpha.27':
+    resolution: {integrity: sha512-898AU67tui7jivjfG81A8nBl07GoHBOevY54sfENwj+D6Z+SrelPPRTBxEQzPNRgPXFKTpLj+RIT9d5LRoWY4g==}
 
-  '@mastra/deployer@0.0.1-alpha.25':
-    resolution: {integrity: sha512-20TViHqV585ayshukCSCM90FqGS7dgYXI7TmKnH2uroLhEGO0EUiprDdPIa9uWzbMrA/BVcBRVqNnF4deb13zQ==}
+  '@mastra/rag@0.0.2-alpha.73':
+    resolution: {integrity: sha512-eG/3Er0BUPIYJ7bytFssb2p18/jIGDRgeyOohz6hCV2fKNa1xzg7xhb1LRacuNu5+h9LAeqrA+rnHuMAa0sg4w==}
 
-  '@mastra/rag@0.0.2-alpha.72':
-    resolution: {integrity: sha512-SNPRlFc7wHKSgqWx4wEwYdPhCrOTyiuMRDVoCbS42uz3u8V1e2sD1K9/R8eupKy1mAOh1nWwFn8sA6NbTOaGyQ==}
-
-  '@mastra/vector-pg@0.0.1-alpha.15':
-    resolution: {integrity: sha512-K96IR4WtWs5sSO2FGVvL+Dhi5z3zF8DhXshFd9ECy2YcQLGhA8Lp95zTLwnGav4vlD9J6oArgXfIpKyyAvJkRQ==}
+  '@mastra/vector-pg@0.0.1-alpha.16':
+    resolution: {integrity: sha512-UAw4FOWTRhxlhzoDG08ZzmIbtCbyjZ0mfDajt2f2Ue95jYMHNhNMUMzp6vASDSJP80naQd9okN3qb8N8Vp7HRQ==}
 
   '@mistralai/mistralai@1.4.0':
     resolution: {integrity: sha512-xA3DAtIDh4Qgr1EoSuiGVE+2ABNrxpcTeC0kSXYbkDNUGdthalLAH7DgbG0fkKZ7TN8xdWXQq2WiIghp/O96Eg==}
@@ -3484,6 +3480,7 @@ packages:
 
   libsql@0.4.7:
     resolution: {integrity: sha512-T9eIRCs6b0J1SHKYIvD8+KCJMcWZ900iZyxdnSCdqxN12Z1ijzT+jY5nrk72Jw4B0HGzms2NgpryArlJqvc3Lw==}
+    cpu: [x64, arm64, wasm32]
     os: [darwin, linux, win32]
 
   lie@3.3.0:
@@ -3576,8 +3573,8 @@ packages:
     engines: {node: '>=12.0.0'}
     hasBin: true
 
-  mastra@0.1.57-alpha.130:
-    resolution: {integrity: sha512-vAL+BkLbPaey1Jft109OhAAxv7w2PRBK9/gyj8gVvyYAmb2vKVzW0ATeMzoA4KExvJwVbnLVa/jGQ6j9KNWM8w==}
+  mastra@0.1.57-alpha.132:
+    resolution: {integrity: sha512-cC2W3rsDCcruw3cRxKknA6Tq4DvadRhlyPwc+61GDdN2b/wvZHMQs5Dwk8Jb+1cqVBzId2cAQn2WX/hjWWnBvg==}
     hasBin: true
 
   math-intrinsics@1.1.0:
@@ -6549,51 +6546,7 @@ snapshots:
       - supports-color
     optional: true
 
-  '@mastra/core@0.1.27-alpha.80(encoding@0.1.13)(react@19.0.0)':
-    dependencies:
-      '@ai-sdk/amazon-bedrock': 1.1.5(zod@3.24.1)
-      '@ai-sdk/anthropic': 1.1.5(zod@3.24.1)
-      '@ai-sdk/azure': 1.1.5(zod@3.24.1)
-      '@ai-sdk/cohere': 1.1.5(zod@3.24.1)
-      '@ai-sdk/google': 1.1.5(zod@3.24.1)
-      '@ai-sdk/mistral': 1.1.5(zod@3.24.1)
-      '@ai-sdk/openai': 1.1.5(zod@3.24.1)
-      '@ai-sdk/xai': 1.1.6(zod@3.24.1)
-      '@badgateway/oauth2-client': 2.4.2
-      '@date-fns/utc': 1.2.0
-      '@opentelemetry/api': 1.9.0
-      '@opentelemetry/auto-instrumentations-node': 0.53.0(@opentelemetry/api@1.9.0)(encoding@0.1.13)
-      '@opentelemetry/exporter-trace-otlp-http': 0.55.0(@opentelemetry/api@1.9.0)
-      '@opentelemetry/resources': 1.30.1(@opentelemetry/api@1.9.0)
-      '@opentelemetry/sdk-metrics': 1.30.1(@opentelemetry/api@1.9.0)
-      '@opentelemetry/sdk-node': 0.55.0(@opentelemetry/api@1.9.0)
-      '@opentelemetry/sdk-trace-base': 1.30.1(@opentelemetry/api@1.9.0)
-      '@opentelemetry/sdk-trace-node': 1.30.1(@opentelemetry/api@1.9.0)
-      '@opentelemetry/semantic-conventions': 1.28.0
-      '@pinecone-database/pinecone': 3.0.3
-      '@types/express': 5.0.0
-      '@upstash/redis': 1.34.3
-      ai: 4.1.9(react@19.0.0)(zod@3.24.1)
-      anthropic-vertex-ai: 1.0.2(encoding@0.1.13)(zod@3.24.1)
-      cohere-ai: 7.15.4(encoding@0.1.13)
-      date-fns: 3.6.0
-      dotenv: 16.4.7
-      express: 4.21.2
-      json-schema: 0.4.0
-      pino: 9.6.0
-      pino-pretty: 13.0.0
-      radash: 12.1.0
-      sift: 17.1.3
-      voyage-ai-provider: 1.0.1(zod@3.24.1)
-      xstate: 5.19.2
-      zod: 3.24.1
-    transitivePeerDependencies:
-      - aws-crt
-      - encoding
-      - react
-      - supports-color
-
-  '@mastra/core@0.1.27-alpha.81(encoding@0.1.13)(react@19.0.0)':
+  '@mastra/core@0.1.27-alpha.82(encoding@0.1.13)(react@19.0.0)':
     dependencies:
       '@ai-sdk/amazon-bedrock': 1.1.5(zod@3.24.1)
       '@ai-sdk/anthropic': 1.1.5(zod@3.24.1)
@@ -6640,23 +6593,25 @@ snapshots:
       - supports-color
       - utf-8-validate
 
-  '@mastra/deployer@0.0.1-alpha.25(encoding@0.1.13)(react@19.0.0)':
+  '@mastra/deployer@0.0.1-alpha.27(encoding@0.1.13)(react@19.0.0)':
     dependencies:
-      '@mastra/core': 0.1.27-alpha.80(encoding@0.1.13)(react@19.0.0)
+      '@mastra/core': 0.1.27-alpha.82(encoding@0.1.13)(react@19.0.0)
       esbuild: 0.24.2
       fs-extra: 11.3.0
       zod: 3.24.1
     transitivePeerDependencies:
       - aws-crt
+      - bufferutil
       - encoding
       - react
       - supports-color
+      - utf-8-validate
 
-  '@mastra/rag@0.0.2-alpha.72(@aws-crypto/sha256-js@5.2.0)(@aws-sdk/credential-providers@3.734.0)(@huggingface/transformers@3.3.2)(canvas@2.11.2(encoding@0.1.13))(encoding@0.1.13)(gpt-tokenizer@2.8.1)(pathe@1.1.2)(pg@8.13.1)(react@19.0.0)(tree-sitter@0.22.4)(typescript@5.7.2)(web-tree-sitter@0.24.7)(ws@8.18.0)':
+  '@mastra/rag@0.0.2-alpha.73(@aws-crypto/sha256-js@5.2.0)(@aws-sdk/credential-providers@3.734.0)(@huggingface/transformers@3.3.2)(canvas@2.11.2(encoding@0.1.13))(encoding@0.1.13)(gpt-tokenizer@2.8.1)(pathe@1.1.2)(pg@8.13.1)(react@19.0.0)(tree-sitter@0.22.4)(typescript@5.7.2)(web-tree-sitter@0.24.7)(ws@8.18.0)':
     dependencies:
       '@llamaindex/core': 0.4.20(@aws-crypto/sha256-js@5.2.0)(@huggingface/transformers@3.3.2)(gpt-tokenizer@2.8.1)(js-tiktoken@1.0.16)(pathe@1.1.2)
       '@llamaindex/env': 0.1.25(@aws-crypto/sha256-js@5.2.0)(@huggingface/transformers@3.3.2)(gpt-tokenizer@2.8.1)(js-tiktoken@1.0.16)(pathe@1.1.2)
-      '@mastra/core': 0.1.27-alpha.81(encoding@0.1.13)(react@19.0.0)
+      '@mastra/core': 0.1.27-alpha.82(encoding@0.1.13)(react@19.0.0)
       '@paralleldrive/cuid2': 2.2.2
       js-tiktoken: 1.0.16
       jsdom: 25.0.1(canvas@2.11.2(encoding@0.1.13))
@@ -6691,9 +6646,9 @@ snapshots:
       - web-tree-sitter
       - ws
 
-  '@mastra/vector-pg@0.0.1-alpha.15(encoding@0.1.13)(react@19.0.0)':
+  '@mastra/vector-pg@0.0.1-alpha.16(encoding@0.1.13)(react@19.0.0)':
     dependencies:
-      '@mastra/core': 0.1.27-alpha.81(encoding@0.1.13)(react@19.0.0)
+      '@mastra/core': 0.1.27-alpha.82(encoding@0.1.13)(react@19.0.0)
       pg: 8.13.1
     transitivePeerDependencies:
       - aws-crt
@@ -9690,12 +9645,12 @@ snapshots:
       underscore: 1.13.7
       xmlbuilder: 10.1.1
 
-  mastra@0.1.57-alpha.130(@swc/helpers@0.5.15)(encoding@0.1.13)(react@19.0.0):
+  mastra@0.1.57-alpha.132(@swc/helpers@0.5.15)(encoding@0.1.13)(react@19.0.0):
     dependencies:
       '@clack/prompts': 0.8.2
       '@dagrejs/dagre': 1.1.4
-      '@mastra/core': 0.1.27-alpha.80(encoding@0.1.13)(react@19.0.0)
-      '@mastra/deployer': 0.0.1-alpha.25(encoding@0.1.13)(react@19.0.0)
+      '@mastra/core': 0.1.27-alpha.82(encoding@0.1.13)(react@19.0.0)
+      '@mastra/deployer': 0.0.1-alpha.27(encoding@0.1.13)(react@19.0.0)
       '@swc/core': 1.10.11(@swc/helpers@0.5.15)
       chokidar: 4.0.3
       commander: 12.1.0
@@ -9718,10 +9673,12 @@ snapshots:
     transitivePeerDependencies:
       - '@swc/helpers'
       - aws-crt
+      - bufferutil
       - debug
       - encoding
       - react
       - supports-color
+      - utf-8-validate
 
   math-intrinsics@1.1.0: {}
 
