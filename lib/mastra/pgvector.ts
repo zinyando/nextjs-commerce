@@ -1,9 +1,10 @@
 import { embed } from "@mastra/rag";
 import { PgVector } from '@mastra/vector-pg';
+import { Product } from 'lib/shopify/types';
 
 const connectionString = process.env.POSTGRES_CONNECTION_STRING;
 if (!connectionString) {
-  throw new Error('POSTGRES_CONNECTION_STRING environment variable is not set');
+  throw new Error('POSTGRES_CONNECTION_STRING is required');
 }
 
 const pgVector = new PgVector(connectionString);
@@ -58,17 +59,10 @@ export async function storeProductEmbedding(embeddings: number[][], products: Pr
   return result;
 }
 
-export async function searchProducts(query: string) {
-  const { embedding } = await embed(
-    query,
-    {
-      provider: "OPEN_AI",
-      model: "text-embedding-3-small",
-      maxRetries: 3,
-    }
-  );
+export async function searchProducts(query: string): Promise<(Product | undefined)[]> {
+  const { embedding } = await embed(query, { provider: "OPEN_AI", model: "text-embedding-3-small", maxRetries: 3 });
 
   const results = await pgVector.query("products", embedding, 10);
   
-  return results.map(result => result.metadata);
+  return results.map(result => result.metadata as Product | undefined);
 }

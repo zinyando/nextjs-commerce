@@ -2,6 +2,7 @@ import Grid from 'components/grid';
 import ProductGridItems from 'components/layout/product-grid-items';
 import { defaultSort, sorting } from 'lib/constants';
 import { searchProducts } from 'lib/mastra/pgvector';
+import { Product } from 'lib/shopify/types';
 
 export const metadata = {
   title: 'Search',
@@ -15,7 +16,8 @@ export default async function SearchPage(props: {
   const { sort, q: searchValue } = searchParams as { [key: string]: string };
   const { sortKey, reverse } = sorting.find((item) => item.slug === sort) || defaultSort;
 
-  const products = searchValue ? await searchProducts(searchValue) : [];
+  const searchResults = searchValue ? await searchProducts(searchValue) : [];
+  const products = searchResults.filter((product): product is Product => product !== undefined);
   const resultsText = products.length > 1 ? 'results' : 'result';
 
   return (

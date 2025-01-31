@@ -168,7 +168,12 @@ const generateEmbeddingsStep = new Step({
     })
   ),
   execute: async ({ context: { machineContext } }) => {
-    const products = machineContext?.stepResults?.fetchProductsStep?.payload;
+    const fetchProductsResult = machineContext?.stepResults?.fetchProductsStep;
+    if (!fetchProductsResult || fetchProductsResult.status !== 'success') {
+      throw new Error('Previous step failed or not completed');
+    }
+    
+    const products = fetchProductsResult.payload;
     if (!products || !Array.isArray(products)) {
       throw new Error('Products not found in step results or invalid format');
     }
@@ -260,7 +265,12 @@ const storeEmbeddingsStep = new Step({
   ),
   output: z.object({ success: z.boolean() }),
   execute: async ({ context: { machineContext } }) => {
-    const productsWithEmbeddings = machineContext?.stepResults?.generateEmbeddingsStep?.payload;
+    const generateEmbeddingsResult = machineContext?.stepResults?.generateEmbeddingsStep;
+    if (!generateEmbeddingsResult || generateEmbeddingsResult.status !== 'success') {
+      throw new Error('Previous step failed or not completed');
+    }
+    
+    const productsWithEmbeddings = generateEmbeddingsResult.payload;
     if (!productsWithEmbeddings || !Array.isArray(productsWithEmbeddings)) {
       throw new Error('Products not found in step results or invalid format');
     }
