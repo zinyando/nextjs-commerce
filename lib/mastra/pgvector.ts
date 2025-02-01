@@ -61,8 +61,9 @@ export async function storeProductEmbedding(embeddings: number[][], products: Pr
 
 export async function searchProducts(query: string): Promise<(Product | undefined)[]> {
   const { embedding } = await embed(query, { provider: "OPEN_AI", model: "text-embedding-3-small", maxRetries: 3 });
+  const results = await pgVector.query("products", embedding, 20);
 
-  const results = await pgVector.query("products", embedding, 10);
-  
-  return results.map(result => result.metadata as Product | undefined);
+  return results
+    .filter(result => result.score > 0.5)
+    .map(result => result.metadata as Product | undefined);
 }
