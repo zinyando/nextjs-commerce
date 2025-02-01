@@ -16,7 +16,7 @@ export default async function SearchPage(props: {
   const { sort, q: searchValue } = searchParams as { [key: string]: string };
   const { sortKey, reverse } = sorting.find((item) => item.slug === sort) || defaultSort;
 
-  const searchResults = searchValue ? await searchProducts(searchValue) : [];
+  const searchResults = await searchProducts(searchValue || undefined);
   const products = searchResults.filter((product): product is Product => product !== undefined);
   const resultsText = products.length > 1 ? 'results' : 'result';
 

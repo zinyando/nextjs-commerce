@@ -2,6 +2,13 @@ import { embed } from "@mastra/rag";
 import { PgVector } from '@mastra/vector-pg';
 import { Product } from 'lib/shopify/types';
 
+import { createClient } from '@supabase/supabase-js';
+
+const supabase = createClient(
+  process.env.SUPABASE_URL!,
+  process.env.SUPABASE_KEY!
+);
+
 const connectionString = process.env.POSTGRES_CONNECTION_STRING;
 if (!connectionString) {
   throw new Error('POSTGRES_CONNECTION_STRING is required');
@@ -59,7 +66,21 @@ export async function storeProductEmbedding(embeddings: number[][], products: Pr
   return result;
 }
 
-export async function searchProducts(query: string): Promise<(Product | undefined)[]> {
+export async function searchProducts(query?: string): Promise<(Product | undefined)[]> {
+  if (!query) {
+    // Return all products using Supabase
+    const { data: products, error } = await supabase
+      .from('products')
+      .select('*');
+
+    if (error) {
+      console.error('Error fetching products:', error);
+      return [];
+    }
+
+    return products.map(product => product.metadata as Product | undefined);
+  }
+
   const { embedding } = await embed(query, { provider: "OPEN_AI", model: "text-embedding-3-small", maxRetries: 3 });
   const results = await pgVector.query("products", embedding, 20);
 
