@@ -2,13 +2,6 @@ import { embed } from "@mastra/rag";
 import { PgVector } from '@mastra/vector-pg';
 import { Product } from 'lib/shopify/types';
 
-import { createClient } from '@supabase/supabase-js';
-
-const supabase = createClient(
-  process.env.SUPABASE_URL!,
-  process.env.SUPABASE_KEY!
-);
-
 const connectionString = process.env.POSTGRES_CONNECTION_STRING;
 if (!connectionString) {
   throw new Error('POSTGRES_CONNECTION_STRING is required');
