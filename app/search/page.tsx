@@ -19,15 +19,27 @@ export default async function SearchPage(props: {
 
   const searchResults = await searchProducts(searchValue || undefined);
   
-  // Split semantic results into high and low confidence
   const directMatches = products;
-  const highConfidenceMatches = (searchResults?.products ?? [])
-    .filter((product, index) => (searchResults?.scores?.[index] ?? 0) > 0.4)
-    .filter(product => !directMatches.some(directMatch => directMatch.id === product.id));
+  const productsWithScores = (searchResults?.products ?? [])
+    .map((product, index) => ({
+      product,
+      score: searchResults?.scores?.[index] ?? 1
+    }))
+    .filter(({ product }) => !directMatches.some(directMatch => directMatch.id === product.id))
+    .sort((a, b) => b.score - a.score);
 
-  const lowConfidenceMatches = (searchResults?.products ?? [])
-    .filter((product, index) => (searchResults?.scores?.[index] ?? 0) <= 0.4)
-    .filter(product => !directMatches.some(directMatch => directMatch.id === product.id));
+  const highConfidenceMatches = productsWithScores
+    .filter(({ score }) => score > 0.4)
+    .map(({ product }) => product);
+
+  const highConfidenceOrTop3 = highConfidenceMatches.length > 0 
+    ? highConfidenceMatches 
+    : productsWithScores.slice(0, 3).map(({ product }) => product);
+
+  const lowConfidenceMatches = productsWithScores
+    .filter(({ score }) => score <= 0.4)
+    .map(({ product }) => product)
+    .filter(product => !highConfidenceOrTop3.some(highMatch => highMatch.id === product.id));
 
   return (
     <>
@@ -39,7 +51,7 @@ export default async function SearchPage(props: {
                 <path strokeLinecap="round" strokeLinejoin="round" d="m21 21-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 5.196a7.5 7.5 0 0 0 10.607 10.607Z" />
               </svg>
               <p className="text-lg text-neutral-600 dark:text-neutral-300">
-                {directMatches.length === 0 && highConfidenceMatches.length === 0 && lowConfidenceMatches.length === 0 ? (
+                {directMatches.length === 0 && highConfidenceOrTop3.length === 0 && lowConfidenceMatches.length === 0 ? (
                   <>
                     No results found for <span className="font-medium">&quot;{searchValue}&quot;</span>
                   </>
@@ -54,7 +66,7 @@ export default async function SearchPage(props: {
                 )}
               </p>
             </div>
-            {directMatches.length === 0 && highConfidenceMatches.length === 0 && lowConfidenceMatches.length === 0 ? (
+            {directMatches.length === 0 && highConfidenceOrTop3.length === 0 && lowConfidenceMatches.length === 0 ? (
               <p className="text-neutral-500 dark:text-neutral-400 ml-7">
                 Try adjusting your search terms or browse our categories.
               </p>
@@ -63,8 +75,8 @@ export default async function SearchPage(props: {
                 {directMatches.length > 0 && (
                   <p>{directMatches.length} exact {directMatches.length === 1 ? 'match' : 'matches'}</p>
                 )}
-                {highConfidenceMatches.length > 0 && (
-                  <p>{highConfidenceMatches.length} similar {highConfidenceMatches.length === 1 ? 'product' : 'products'}</p>
+                {highConfidenceOrTop3.length > 0 && (
+                  <p>{highConfidenceOrTop3.length} similar {highConfidenceOrTop3.length === 1 ? 'product' : 'products'}</p>
                 )}
                 {lowConfidenceMatches.length > 0 && (
                   <p>{lowConfidenceMatches.length} related {lowConfidenceMatches.length === 1 ? 'suggestion' : 'suggestions'}</p>
@@ -86,11 +98,11 @@ export default async function SearchPage(props: {
       )}
 
       {/* High Confidence Semantic Matches */}
-      {highConfidenceMatches.length > 0 && (
+      {highConfidenceOrTop3.length > 0 && (
         <div className="mb-12">
           <h2 className="text-lg font-semibold mb-4">Similar Products</h2>
           <Grid className="grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
-            <ProductGridItems products={highConfidenceMatches} />
+            <ProductGridItems products={highConfidenceOrTop3} />
           </Grid>
         </div>
       )}
