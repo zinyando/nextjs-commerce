@@ -1,8 +1,15 @@
-import { Step, Workflow } from '@mastra/core';
+import { Mastra, Step, Workflow } from '@mastra/core';
 import { z } from 'zod';
 import { generateEmbedding } from '../../../lib/mastra/embeddings';
 import { storeProductEmbedding } from '../../../lib/mastra/pgvector';
 import { ShopifyClient } from '../../../lib/mastra/shopify';
+
+const mastra = new Mastra();
+ 
+const llm = mastra.LLM({
+  provider: "OPEN_AI",
+  name: "gpt-4o-mini",
+});
 
 const shopifyProductSchema = z.object({
   id: z.string(),
@@ -99,6 +106,62 @@ const fetchProductsStep = new Step({
   }
 });
 
+async function getImageDescription(imageUrl: string): Promise<string> {
+  try {
+    let prompt = `Describe what you see in order of prominence:
+    "[Main colors] [item type] with [visual patterns/details], featuring [prominent visual elements], shown [position/context]"
+
+    Example: "Pristine white running shoes with crimson zigzag stripes, featuring glossy silver eyelets and translucent air bubble sole, displayed floating on black surface."
+
+    ## Color Profile
+    Primary: [Dominant color] - describe finish (matte/glossy/metallic)
+    Secondary: [Supporting colors] - describe patterns/placement
+    Accents: [Small color details] - describe where they appear
+    Contrast: [Note any striking color combinations]
+
+    ## Visual Details
+    Shape: [Overall silhouette and form]
+    Patterns: [Any repeating elements]
+    Textures: [Surface appearances]
+    Highlights: [Shiny/reflective areas]
+    Shadows: [Dark/depth areas]
+
+    ## Core Attributes
+    - Type: [Product category]
+    - Colors: [Main + accent colors]
+    - Materials: [Key visible materials]
+    - Style: [Design type]
+    - View: [Camera angle/perspective]
+    - Textures: [material appearances]
+    - Patterns: [design elements]
+    - Visual effects: [how light interacts]
+
+    ## Search Terms
+    Include three types of terms:
+    1. Product variations (sneakers, trainers, athletic shoes)
+    2. Use cases (running, training, sports)
+    3. Key features (breathable, cushioned, lightweight)
+
+    ## Distinctive Elements
+    List up to 3 unique or notable features that distinguish this item.`
+
+    const response = await llm.generate([
+      {
+        role: 'user',
+        content: [
+          { type: 'text', text: prompt},
+          { type: 'image', image: imageUrl }
+        ]
+      }
+    ]);
+
+    return response.text;
+  } catch (error) {
+    console.error('Error getting image description:', error);
+    return '';
+  }
+}
+
 const generateEmbeddingsStep = new Step({
   id: 'generateEmbeddingsStep',
   input: z.array(shopifyProductSchema),
@@ -180,10 +243,16 @@ const generateEmbeddingsStep = new Step({
 
     const results = [];
     for (const product of products) {
+      let imageDescription = '';
+      if (product.featuredImage?.url) {
+        imageDescription = await getImageDescription(product.featuredImage.url);
+      }
+
       const productText = [
         product.title,
         product.description,
-        ...(product.tags || [])
+        imageDescription,
+        ...(product.tags || []),
       ].filter(Boolean).join(' ');
       
       const embedding = await generateEmbedding(productText);

@@ -85,6 +85,6 @@ export async function searchProducts(query?: string): Promise<(Product | undefin
   const results = await pgVector.query("products", embedding, 20);
 
   return results
-    .filter(result => result.score > 0.5)
+    .filter(result => result.score > 0.4)
     .map(result => result.metadata as Product | undefined);
 }
