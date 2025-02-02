@@ -65,7 +65,7 @@ export async function searchProducts(query?: string) {
   }
 
   const { embedding } = await embed(query, { provider: "OPEN_AI", model: "text-embedding-3-small", maxRetries: 3 });
-  const results = await pgVector.query("products", embedding, 20);
+  const results = await pgVector.query("products", embedding, 10);
 
   return {
     products: results.map(result => result.metadata as Product),
