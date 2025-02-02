@@ -66,25 +66,16 @@ export async function storeProductEmbedding(embeddings: number[][], products: Pr
   return result;
 }
 
-export async function searchProducts(query?: string): Promise<(Product | undefined)[]> {
+export async function searchProducts(query?: string) {
   if (!query) {
-    // Return all products using Supabase
-    const { data: products, error } = await supabase
-      .from('products')
-      .select('*');
-
-    if (error) {
-      console.error('Error fetching products:', error);
-      return [];
-    }
-
-    return products.map(product => product.metadata as Product | undefined);
+    return { products: [], scores: [] };
   }
 
   const { embedding } = await embed(query, { provider: "OPEN_AI", model: "text-embedding-3-small", maxRetries: 3 });
   const results = await pgVector.query("products", embedding, 20);
 
-  return results
-    .filter(result => result.score > 0.4)
-    .map(result => result.metadata as Product | undefined);
+  return {
+    products: results.map(result => result.metadata as Product),
+    scores: results.map(result => result.score as number)
+  };
 }

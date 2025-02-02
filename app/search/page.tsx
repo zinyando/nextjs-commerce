@@ -3,7 +3,6 @@ import ProductGridItems from 'components/layout/product-grid-items';
 import { defaultSort, sorting } from 'lib/constants';
 import { searchProducts } from 'lib/mastra/pgvector';
 import { getProducts } from 'lib/shopify';
-import { Product } from 'lib/shopify/types';
 
 export const metadata = {
   title: 'Search',
@@ -19,8 +18,16 @@ export default async function SearchPage(props: {
   const products = await getProducts({ sortKey, reverse, query: searchValue });
 
   const searchResults = await searchProducts(searchValue || undefined);
-  const ragProducts = searchResults.filter((product): product is Product => product !== undefined);
-  const resultsText = products.length > 1 ? 'results' : 'result';
+  
+  // Split semantic results into high and low confidence
+  const directMatches = products;
+  const highConfidenceMatches = (searchResults?.products ?? [])
+    .filter((product, index) => (searchResults?.scores?.[index] ?? 0) > 0.4)
+    .filter(product => !directMatches.some(directMatch => directMatch.id === product.id));
+
+  const lowConfidenceMatches = (searchResults?.products ?? [])
+    .filter((product, index) => (searchResults?.scores?.[index] ?? 0) <= 0.4)
+    .filter(product => !directMatches.some(directMatch => directMatch.id === product.id));
 
   return (
     <>
@@ -32,9 +39,13 @@ export default async function SearchPage(props: {
                 <path strokeLinecap="round" strokeLinejoin="round" d="m21 21-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 5.196a7.5 7.5 0 0 0 10.607 10.607Z" />
               </svg>
               <p className="text-lg text-neutral-600 dark:text-neutral-300">
-                {products.length === 0 && ragProducts.length === 0 ? (
+                {directMatches.length === 0 && highConfidenceMatches.length === 0 && lowConfidenceMatches.length === 0 ? (
                   <>
                     No results found for <span className="font-medium">&quot;{searchValue}&quot;</span>
+                  </>
+                ) : directMatches.length === 0 ? (
+                  <>
+                    No exact matches found for <span className="font-medium">&quot;{searchValue}&quot;</span>
                   </>
                 ) : (
                   <>
@@ -43,40 +54,67 @@ export default async function SearchPage(props: {
                 )}
               </p>
             </div>
-            {products.length === 0 && ragProducts.length === 0 && (
+            {directMatches.length === 0 && highConfidenceMatches.length === 0 && lowConfidenceMatches.length === 0 ? (
               <p className="text-neutral-500 dark:text-neutral-400 ml-7">
                 Try adjusting your search terms or browse our categories.
               </p>
-            )}
-            {(products.length > 0 || ragProducts.length > 0) && (
+            ) : (
               <div className="text-sm text-neutral-500 dark:text-neutral-400 ml-7">
-                <p>{products.length} direct {products.length === 1 ? 'match' : 'matches'}</p>
-                <p>{ragProducts.length} semantic {ragProducts.length === 1 ? 'match' : 'matches'}</p>
+                {directMatches.length > 0 && (
+                  <p>{directMatches.length} exact {directMatches.length === 1 ? 'match' : 'matches'}</p>
+                )}
+                {highConfidenceMatches.length > 0 && (
+                  <p>{highConfidenceMatches.length} similar {highConfidenceMatches.length === 1 ? 'product' : 'products'}</p>
+                )}
+                {lowConfidenceMatches.length > 0 && (
+                  <p>{lowConfidenceMatches.length} related {lowConfidenceMatches.length === 1 ? 'suggestion' : 'suggestions'}</p>
+                )}
               </div>
             )}
           </div>
         </div>
       ) : null}
-      {(products.length > 0 || ragProducts.length > 0) ? (
-        <div>
-          {products.length > 0 && (
-            <>
-              <h2 className="text-lg font-semibold mb-4">Direct Matches</h2>
-              <Grid className="grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 mb-8">
-                <ProductGridItems products={products} />
-              </Grid>
-            </>
-          )}
-          {ragProducts.length > 0 && (
-            <>
-              <h2 className="text-lg font-semibold mb-4">Semantic Matches</h2>
-              <Grid className="grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
-                <ProductGridItems products={ragProducts} />
-              </Grid>
-            </>
-          )}
+      
+      {/* Direct Matches */}
+      {directMatches.length > 0 && (
+        <div className="mb-12">
+          <h2 className="text-lg font-semibold mb-4">Exact Matches</h2>
+          <Grid className="grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
+            <ProductGridItems products={directMatches} />
+          </Grid>
         </div>
-      ) : null}
+      )}
+
+      {/* High Confidence Semantic Matches */}
+      {highConfidenceMatches.length > 0 && (
+        <div className="mb-12">
+          <h2 className="text-lg font-semibold mb-4">Similar Products</h2>
+          <Grid className="grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
+            <ProductGridItems products={highConfidenceMatches} />
+          </Grid>
+        </div>
+      )}
+
+      {/* Low Confidence Semantic Matches */}
+      {lowConfidenceMatches.length > 0 && (
+        <div className="space-y-4">
+          <h2 className="text-lg text-neutral-600 dark:text-neutral-400">You might also be interested in:</h2>
+          <div className="space-y-3">
+            {lowConfidenceMatches.map((product) => (
+              <a
+                key={product.handle}
+                href={`/product/${product.handle}`}
+                className="block text-neutral-600 hover:text-neutral-800 dark:text-neutral-400 dark:hover:text-neutral-200 transition-colors"
+              >
+                {product.title}
+                <span className="text-sm text-neutral-500 dark:text-neutral-500 ml-2">
+                  {product.priceRange.maxVariantPrice.amount} {product.priceRange.maxVariantPrice.currencyCode}
+                </span>
+              </a>
+            ))}
+          </div>
+        </div>
+      )}
     </>
   );
 }
