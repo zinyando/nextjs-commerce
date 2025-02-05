@@ -15,10 +15,12 @@ export default async function SearchPage(props: {
   const searchParams = await props.searchParams;
   const { sort, q: searchValue } = searchParams as { [key: string]: string };
   const { sortKey, reverse } = sorting.find((item) => item.slug === sort) || defaultSort;
-  const products = await getProducts({ sortKey, reverse, query: searchValue });
 
-  const searchResults = await searchProducts(searchValue || undefined);
-  
+  const [products, searchResults] = await Promise.all([
+    getProducts({ sortKey, reverse, query: searchValue }),
+    searchProducts(searchValue || undefined)
+  ]);
+
   const directMatches = products;
   const productsWithScores = (searchResults?.products ?? [])
     .map((product, index) => ({
