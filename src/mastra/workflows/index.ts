@@ -74,6 +74,10 @@ const shopifyProductSchema = z.object({
   ).optional()
 });
 
+const productWithEmbeddingSchema = shopifyProductSchema.extend({
+  embedding: z.array(z.number())
+});
+
 export const shopifyRagWorkflow = new Workflow({
   name: 'shopify-rag-workflow',
   triggerSchema: z.object({
@@ -165,71 +169,7 @@ async function getImageDescription(imageUrl: string): Promise<string> {
 const generateEmbeddingsStep = new Step({
   id: 'generateEmbeddingsStep',
   input: z.array(shopifyProductSchema),
-  output: z.array(
-    z.object({
-      id: z.string(),
-      handle: z.string(),
-      availableForSale: z.boolean(),
-      title: z.string(),
-      description: z.string(),
-      descriptionHtml: z.string(),
-      options: z.array(
-        z.object({
-          name: z.string(),
-          values: z.array(z.string())
-        })
-      ).optional(),
-      priceRange: z.object({
-        maxVariantPrice: z.object({
-          amount: z.string(),
-          currencyCode: z.string()
-        }),
-        minVariantPrice: z.object({
-          amount: z.string(),
-          currencyCode: z.string()
-        })
-      }),
-      featuredImage: z.object({
-        url: z.string(),
-        altText: z.string().nullable(),
-        width: z.number(),
-        height: z.number()
-      }).optional(),
-      seo: z.object({
-        title: z.string(),
-        description: z.string()
-      }).optional(),
-      tags: z.array(z.string()).optional(),
-      updatedAt: z.string(),
-      createdAt: z.string(),
-      images: z.array(
-        z.object({
-          url: z.string(),
-          altText: z.string().nullable(),
-          width: z.number(),
-          height: z.number()
-        })
-      ).optional(),
-      variants: z.array(
-        z.object({
-          id: z.string(),
-          title: z.string(),
-          availableForSale: z.boolean(),
-          price: z.object({
-            amount: z.string(),
-            currencyCode: z.string()
-          }),
-          selectedOptions: z.array(
-            z.object({
-              name: z.string(),
-              value: z.string()
-            })
-          )
-        })
-      ).optional(),
-      embedding: z.array(z.number())
-    })
-  ),
+  output: z.array(productWithEmbeddingSchema),
   execute: async ({ context: { machineContext } }) => {
     const fetchProductsResult = machineContext?.stepResults?.fetchProductsStep;
     if (!fetchProductsResult || fetchProductsResult.status !== 'success') {
@@ -267,71 +207,7 @@ const generateEmbeddingsStep = new Step({
 
 const storeEmbeddingsStep = new Step({
   id: 'storeEmbeddingsStep',
-  input: z.array(
-    z.object({
-      id: z.string(),
-      handle: z.string(),
-      availableForSale: z.boolean(),
-      title: z.string(),
-      description: z.string(),
-      descriptionHtml: z.string(),
-      options: z.array(
-        z.object({
-          name: z.string(),
-          values: z.array(z.string())
-        })
-      ).optional(),
-      priceRange: z.object({
-        maxVariantPrice: z.object({
-          amount: z.string(),
-          currencyCode: z.string()
-        }),
-        minVariantPrice: z.object({
-          amount: z.string(),
-          currencyCode: z.string()
-        })
-      }),
-      featuredImage: z.object({
-        url: z.string(),
-        altText: z.string().nullable(),
-        width: z.number(),
-        height: z.number()
-      }).optional(),
-      seo: z.object({
-        title: z.string(),
-        description: z.string()
-      }).optional(),
-      tags: z.array(z.string()).optional(),
-      updatedAt: z.string(),
-      createdAt: z.string(),
-      images: z.array(
-        z.object({
-          url: z.string(),
-          altText: z.string().nullable(),
-          width: z.number(),
-          height: z.number()
-        })
-      ).optional(),
-      variants: z.array(
-        z.object({
-          id: z.string(),
-          title: z.string(),
-          availableForSale: z.boolean(),
-          price: z.object({
-            amount: z.string(),
-            currencyCode: z.string()
-          }),
-          selectedOptions: z.array(
-            z.object({
-              name: z.string(),
-              value: z.string()
-            })
-          )
-        })
-      ).optional(),
-      embedding: z.array(z.number())
-    })
-  ),
+  input: z.array(productWithEmbeddingSchema),
   output: z.object({ success: z.boolean() }),
   execute: async ({ context: { machineContext } }) => {
     const generateEmbeddingsResult = machineContext?.stepResults?.generateEmbeddingsStep;
