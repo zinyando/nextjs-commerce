@@ -1,5 +1,6 @@
-import { embed } from "@mastra/rag";
-import { PgVector } from '@mastra/vector-pg';
+import { openai } from '@ai-sdk/openai';
+import { PgVector } from '@mastra/pg';
+import { embed } from 'ai';
 import { Product } from 'lib/shopify/types';
 
 const connectionString = process.env.POSTGRES_CONNECTION_STRING;
@@ -9,7 +10,7 @@ if (!connectionString) {
 
 const pgVector = new PgVector(connectionString);
 
-await pgVector.createIndex("products", 1536);
+await pgVector.createIndex('products', 1536);
 
 interface ProductMetadata {
   id: string;
@@ -29,15 +30,15 @@ interface ProductMetadata {
   options?: any[];
 }
 
-export async function storeProductEmbedding(embeddings: number[][], products: ProductMetadata[]) {  
+export async function storeProductEmbedding(embeddings: number[][], products: ProductMetadata[]) {
   if (embeddings.length !== products.length) {
     throw new Error('Number of embeddings must match number of products');
   }
 
   const result = await pgVector.upsert(
-    "products",
+    'products',
     embeddings,
-    products.map(product => ({
+    products.map((product) => ({
       id: product.id,
       handle: product.handle,
       title: product.title,
@@ -64,11 +65,15 @@ export async function searchProducts(query?: string) {
     return { products: [], scores: [] };
   }
 
-  const { embedding } = await embed(query, { provider: "OPEN_AI", model: "text-embedding-3-small", maxRetries: 3 });
-  const results = await pgVector.query("products", embedding, 10);
+  const { embedding } = await embed({
+    value: query,
+    model: openai.embedding('text-embedding-3-small')
+  });
+
+  const results = await pgVector.query('products', embedding, 10);
 
   return {
-    products: results.map(result => result.metadata as Product),
-    scores: results.map(result => result.score as number)
+    products: results.map((result) => result.metadata as Product),
+    scores: results.map((result) => result.score as number)
   };
 }

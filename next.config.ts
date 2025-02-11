@@ -9,5 +9,5 @@ export default {
       }
     ]
   },
-  serverExternalPackages: ['@mastra/rag', '@mastra/vector-pg'],
+  serverExternalPackages: ['@mastra/rag', '@mastra/pg']
 };

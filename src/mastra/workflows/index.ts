@@ -1,15 +1,15 @@
-import { Mastra, Step, Workflow } from '@mastra/core';
+import { openai } from '@ai-sdk/openai';
+import { Mastra } from '@mastra/core';
+import { Step, Workflow } from '@mastra/core/workflows';
+import { generateText } from 'ai';
 import { z } from 'zod';
 import { generateEmbedding } from '../../../lib/mastra/embeddings';
 import { storeProductEmbedding } from '../../../lib/mastra/pgvector';
 import { ShopifyClient } from '../../../lib/mastra/shopify';
 
 const mastra = new Mastra();
- 
-const llm = mastra.LLM({
-  provider: "OPEN_AI",
-  name: "gpt-4o-mini",
-});
+
+const llm = openai('gpt-4o-mini');
 
 const shopifyProductSchema = z.object({
   id: z.string(),
@@ -18,12 +18,14 @@ const shopifyProductSchema = z.object({
   title: z.string(),
   description: z.string(),
   descriptionHtml: z.string(),
-  options: z.array(
-    z.object({
-      name: z.string(),
-      values: z.array(z.string())
-    })
-  ).optional(),
+  options: z
+    .array(
+      z.object({
+        name: z.string(),
+        values: z.array(z.string())
+      })
+    )
+    .optional(),
   priceRange: z.object({
     maxVariantPrice: z.object({
       amount: z.string(),
@@ -34,44 +36,52 @@ const shopifyProductSchema = z.object({
       currencyCode: z.string()
     })
   }),
-  featuredImage: z.object({
-    url: z.string(),
-    altText: z.string().nullable(),
-    width: z.number(),
-    height: z.number()
-  }).optional(),
-  seo: z.object({
-    title: z.string(),
-    description: z.string()
-  }).optional(),
-  tags: z.array(z.string()).optional(),
-  updatedAt: z.string(),
-  createdAt: z.string(),
-  images: z.array(
-    z.object({
+  featuredImage: z
+    .object({
       url: z.string(),
       altText: z.string().nullable(),
       width: z.number(),
       height: z.number()
     })
-  ).optional(),
-  variants: z.array(
-    z.object({
-      id: z.string(),
+    .optional(),
+  seo: z
+    .object({
       title: z.string(),
-      availableForSale: z.boolean(),
-      price: z.object({
-        amount: z.string(),
-        currencyCode: z.string()
-      }),
-      selectedOptions: z.array(
-        z.object({
-          name: z.string(),
-          value: z.string()
-        })
-      )
+      description: z.string()
     })
-  ).optional()
+    .optional(),
+  tags: z.array(z.string()).optional(),
+  updatedAt: z.string(),
+  createdAt: z.string(),
+  images: z
+    .array(
+      z.object({
+        url: z.string(),
+        altText: z.string().nullable(),
+        width: z.number(),
+        height: z.number()
+      })
+    )
+    .optional(),
+  variants: z
+    .array(
+      z.object({
+        id: z.string(),
+        title: z.string(),
+        availableForSale: z.boolean(),
+        price: z.object({
+          amount: z.string(),
+          currencyCode: z.string()
+        }),
+        selectedOptions: z.array(
+          z.object({
+            name: z.string(),
+            value: z.string()
+          })
+        )
+      })
+    )
+    .optional()
 });
 
 const productWithEmbeddingSchema = shopifyProductSchema.extend({
@@ -81,8 +91,8 @@ const productWithEmbeddingSchema = shopifyProductSchema.extend({
 export const shopifyRagWorkflow = new Workflow({
   name: 'shopify-rag-workflow',
   triggerSchema: z.object({
-    inputValue: shopifyProductSchema,
-  }),
+    inputValue: shopifyProductSchema
+  })
 });
 
 const fetchProductsStep = new Step({
@@ -104,7 +114,7 @@ const fetchProductsStep = new Step({
     try {
       return await shopify.fetchProducts();
     } catch (error) {
-      console.error("Error in fetchProductsStep:", error);
+      console.error('Error in fetchProductsStep:', error);
       throw error;
     }
   }
@@ -147,19 +157,22 @@ async function getImageDescription(imageUrl: string): Promise<string> {
     3. Key features (breathable, cushioned, lightweight)
 
     ## Distinctive Elements
-    List up to 3 unique or notable features that distinguish this item.`
+    List up to 3 unique or notable features that distinguish this item.`;
 
-    const response = await llm.generate([
-      {
-        role: 'user',
-        content: [
-          { type: 'text', text: prompt},
-          { type: 'image', image: imageUrl }
-        ]
-      }
-    ]);
+    const { text } = await generateText({
+      model: openai('gpt-4o'),
+      messages: [
+        {
+          role: 'system',
+          content: [
+            { type: 'text', text: prompt },
+            { type: 'image_url', image_url: imageUrl }
+          ]
+        }
+      ]
+    });
 
-    return response.text;
+    return text || '';
   } catch (error) {
     console.error('Error getting image description:', error);
     return '';
@@ -175,7 +188,7 @@ const generateEmbeddingsStep = new Step({
     if (!fetchProductsResult || fetchProductsResult.status !== 'success') {
       throw new Error('Previous step failed or not completed');
     }
-    
+
     const products = fetchProductsResult.payload;
     if (!products || !Array.isArray(products)) {
       throw new Error('Products not found in step results or invalid format');
@@ -192,9 +205,11 @@ const generateEmbeddingsStep = new Step({
         product.title,
         product.description,
         imageDescription,
-        ...(product.tags || []),
-      ].filter(Boolean).join(' ');
-      
+        ...(product.tags || [])
+      ]
+        .filter(Boolean)
+        .join(' ');
+
       const embedding = await generateEmbedding(productText);
       results.push({
         ...product,
@@ -214,15 +229,15 @@ const storeEmbeddingsStep = new Step({
     if (!generateEmbeddingsResult || generateEmbeddingsResult.status !== 'success') {
       throw new Error('Previous step failed or not completed');
     }
-    
+
     const productsWithEmbeddings = generateEmbeddingsResult.payload;
     if (!productsWithEmbeddings || !Array.isArray(productsWithEmbeddings)) {
       throw new Error('Products not found in step results or invalid format');
     }
 
-    const embeddings = productsWithEmbeddings.map(p => p.embedding);
+    const embeddings = productsWithEmbeddings.map((p) => p.embedding);
     const products = productsWithEmbeddings.map(({ embedding, ...product }) => product);
-    
+
     await storeProductEmbedding(embeddings, products);
     return { success: true };
   }

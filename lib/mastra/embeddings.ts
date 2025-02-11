@@ -1,11 +1,11 @@
-import { embed } from "@mastra/rag";
+import { openai } from '@ai-sdk/openai';
+import { embed } from 'ai';
 
-export async function generateEmbedding(chunks: string): Promise<number[]> {
-  const { embedding } = await embed(chunks, {
-    provider: "OPEN_AI",
-    model: "text-embedding-3-small",
-    maxRetries: 3
+export async function generateEmbedding(chunk: string): Promise<number[]> {
+  const { embedding } = await embed({
+    value: chunk,
+    model: openai.embedding('text-embedding-3-small')
   });
-    
+
   return embedding;
 }
