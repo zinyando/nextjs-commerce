@@ -101,9 +101,9 @@ const fetchProductsStep = new Step({
     inputValue: shopifyProductSchema.optional()
   }),
   output: z.array(shopifyProductSchema),
-  execute: async ({ context: { machineContext } }) => {
-    if (machineContext?.triggerData && Object.keys(machineContext.triggerData).length > 0) {
-      return machineContext.triggerData;
+  execute: async ({ context }) => {
+    if (context?.triggerData && Object.keys(context.triggerData).length > 0) {
+      return context.triggerData;
     }
 
     const shopify = new ShopifyClient(
@@ -183,13 +183,13 @@ const generateEmbeddingsStep = new Step({
   id: 'generateEmbeddingsStep',
   input: z.array(shopifyProductSchema),
   output: z.array(productWithEmbeddingSchema),
-  execute: async ({ context: { machineContext } }) => {
-    const fetchProductsResult = machineContext?.stepResults?.fetchProductsStep;
+  execute: async ({ context }) => {
+    const fetchProductsResult = context?.steps?.fetchProductsStep;
     if (!fetchProductsResult || fetchProductsResult.status !== 'success') {
       throw new Error('Previous step failed or not completed');
     }
 
-    const products = fetchProductsResult.payload;
+    const products = fetchProductsResult.output;
     if (!products || !Array.isArray(products)) {
       throw new Error('Products not found in step results or invalid format');
     }
@@ -224,13 +224,13 @@ const storeEmbeddingsStep = new Step({
   id: 'storeEmbeddingsStep',
   input: z.array(productWithEmbeddingSchema),
   output: z.object({ success: z.boolean() }),
-  execute: async ({ context: { machineContext } }) => {
-    const generateEmbeddingsResult = machineContext?.stepResults?.generateEmbeddingsStep;
+  execute: async ({ context }) => {
+    const generateEmbeddingsResult = context?.steps?.generateEmbeddingsStep;
     if (!generateEmbeddingsResult || generateEmbeddingsResult.status !== 'success') {
       throw new Error('Previous step failed or not completed');
     }
 
-    const productsWithEmbeddings = generateEmbeddingsResult.payload;
+    const productsWithEmbeddings = generateEmbeddingsResult.output;
     if (!productsWithEmbeddings || !Array.isArray(productsWithEmbeddings)) {
       throw new Error('Products not found in step results or invalid format');
     }
