@@ -163,10 +163,10 @@ async function getImageDescription(imageUrl: string): Promise<string> {
       model: openai('gpt-4o'),
       messages: [
         {
-          role: 'system',
+          role: 'user',
           content: [
             { type: 'text', text: prompt },
-            { type: 'image_url', image_url: imageUrl }
+            { type: 'image', image: imageUrl }
           ]
         }
       ]
